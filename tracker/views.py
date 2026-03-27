@@ -28,7 +28,7 @@ class FoodViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(name__icontains=search)
         if food_group:
             qs = qs.filter(food_group__iexact=food_group)
-        return qs[:50]
+        return qs.order_by('name')[:50]
 
 
 class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -40,7 +40,7 @@ class ActivityViewSet(viewsets.ReadOnlyModelViewSet):
         search = self.request.query_params.get('search')
         if search:
             qs = qs.filter(specific_motion__icontains=search)
-        return qs[:50]
+        return qs.order_by('activity_name', 'specific_motion')[:50]
 
 
 @api_view(['GET'])
@@ -95,6 +95,20 @@ def add_activity_entry(request):
         daily_log=daily_log, activity=activity, duration_minutes=duration_minutes
     )
     return Response(ActivityEntrySerializer(entry).data, status=201)
+
+
+@api_view(['DELETE'])
+def delete_food_entry(request, entry_id):
+    entry = get_object_or_404(FoodEntry, pk=entry_id)
+    entry.delete()
+    return Response(status=204)
+
+
+@api_view(['DELETE'])
+def delete_activity_entry(request, entry_id):
+    entry = get_object_or_404(ActivityEntry, pk=entry_id)
+    entry.delete()
+    return Response(status=204)
 
 
 @api_view(['GET'])

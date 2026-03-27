@@ -280,6 +280,71 @@ a {
     font-size: 18px;
 }
 
+/* Net Calorie Colors */
+.cal-deficit {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.cal-surplus {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+/* Search Autocomplete */
+.search-wrapper {
+    position: relative;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1050;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.search-results .search-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-results .search-item:last-child {
+    border-bottom: none;
+}
+
+.search-results .search-item:hover {
+    background: #f8f9fa;
+}
+
+.search-results .search-item .item-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.search-results .search-item .item-detail {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.search-results .no-results {
+    padding: 10px 12px;
+    color: #999;
+    font-size: 14px;
+    text-align: center;
+}
+
 /* Modal */
 .add-data-modal .modal-header {
     flex-direction: column;

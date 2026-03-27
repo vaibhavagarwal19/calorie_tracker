@@ -82,7 +82,14 @@
                                 <input type="date" id="food-date" max="{{ today }}" min="{{ min_date }}" value="{{ today }}">
                             </div>
                             <div class="input-field">
-                                <label>Food Group</label>
+                                <label>Search Food</label>
+                                <div class="search-wrapper">
+                                    <input type="text" id="food-search" placeholder="Type to search (e.g. chicken, apple)..." autocomplete="off">
+                                    <div class="search-results" id="food-search-results"></div>
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label>Or Browse by Food Group</label>
                                 <select id="food-group-select" class="selectbox">
                                     <option value="">-- Select Group --</option>
                                     {% for group in food_groups %}
@@ -126,7 +133,14 @@
                                 <input type="date" id="activity-date" max="{{ today }}" min="{{ min_date }}" value="{{ today }}">
                             </div>
                             <div class="input-field">
-                                <label>Activity Name</label>
+                                <label>Search Activity</label>
+                                <div class="search-wrapper">
+                                    <input type="text" id="activity-search" placeholder="Type to search (e.g. running, yoga)..." autocomplete="off">
+                                    <div class="search-results" id="activity-search-results"></div>
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label>Or Browse by Activity Name</label>
                                 <select id="activity-name-select" class="selectbox">
                                     <option value="">-- Select Activity --</option>
                                     {% for name in activity_names %}
@@ -174,6 +188,51 @@ $(document).ready(function() {
         $('#modal-user-name').text(userName);
     });
 
+    // Search food by typing - shows dropdown results
+    var foodSearchTimer;
+    $('#food-search').on('input', function() {
+        var query = $(this).val();
+        clearTimeout(foodSearchTimer);
+        if (query.length < 2) { $('#food-search-results').hide(); return; }
+        foodSearchTimer = setTimeout(function() {
+            $.get('/api/foods/?search=' + encodeURIComponent(query), function(data) {
+                var results = $('#food-search-results').empty();
+                if (data.length === 0) {
+                    results.append('<div class="no-results">No foods found</div>');
+                } else {
+                    data.forEach(function(food) {
+                        results.append(
+                            '<div class="search-item" data-id="' + food.id + '" data-calories="' + food.calories + '">' +
+                                '<div class="item-name">' + food.name + '</div>' +
+                                '<div class="item-detail">' + food.food_group + ' &middot; ' + food.calories + ' cal/' + (food.serving_description || 'serving') + '</div>' +
+                            '</div>'
+                        );
+                    });
+                }
+                results.show();
+            });
+        }, 300);
+    });
+
+    // When clicking a food search result, select it in the food-select dropdown
+    $(document).on('click', '#food-search-results .search-item', function() {
+        var id = $(this).data('id');
+        var cal = $(this).data('calories');
+        var name = $(this).find('.item-name').text();
+        var select = $('#food-select');
+        select.empty().append('<option value="' + id + '" data-calories="' + cal + '" selected>' + name + ' (' + cal + ' cal)</option>');
+        $('#food-search').val('');
+        $('#food-search-results').hide();
+        updateFoodCalories();
+    });
+
+    // Hide search dropdowns when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.search-wrapper').length) {
+            $('.search-results').hide();
+        }
+    });
+
     // Load foods when food group changes
     $('#food-group-select').on('change', function() {
         var group = $(this).val();
@@ -196,6 +255,44 @@ $(document).ready(function() {
     }
     $('#food-select').on('change', updateFoodCalories);
     $('#food-servings').on('input', updateFoodCalories);
+
+    // Search activity by typing - shows dropdown results
+    var activitySearchTimer;
+    $('#activity-search').on('input', function() {
+        var query = $(this).val();
+        clearTimeout(activitySearchTimer);
+        if (query.length < 2) { $('#activity-search-results').hide(); return; }
+        activitySearchTimer = setTimeout(function() {
+            $.get('/api/activities/?search=' + encodeURIComponent(query), function(data) {
+                var results = $('#activity-search-results').empty();
+                if (data.length === 0) {
+                    results.append('<div class="no-results">No activities found</div>');
+                } else {
+                    data.forEach(function(act) {
+                        results.append(
+                            '<div class="search-item" data-id="' + act.id + '" data-met="' + act.met_value + '">' +
+                                '<div class="item-name">' + act.specific_motion + '</div>' +
+                                '<div class="item-detail">' + act.activity_name + ' &middot; MET: ' + act.met_value + '</div>' +
+                            '</div>'
+                        );
+                    });
+                }
+                results.show();
+            });
+        }, 300);
+    });
+
+    // When clicking an activity search result, select it in the motion dropdown
+    $(document).on('click', '#activity-search-results .search-item', function() {
+        var id = $(this).data('id');
+        var met = $(this).data('met');
+        var name = $(this).find('.item-name').text();
+        var select = $('#activity-motion-select');
+        select.empty().append('<option value="' + id + '" data-met="' + met + '" selected>' + name + ' (MET: ' + met + ')</option>');
+        $('#activity-search').val('');
+        $('#activity-search-results').hide();
+        $('#met-value-display').text(met);
+    });
 
     // Load activities when activity name changes
     $('#activity-name-select').on('change', function() {
@@ -228,7 +325,7 @@ $(document).ready(function() {
             servings: $('#food-servings').val(),
             meal_type: $('#food-meal-type').val()
         };
-        if (!data.food_id) { alert('Please select a food item.'); return; }
+        if (!data.food_id) { showToast('Please select a food item.', 'error'); return; }
         $.ajax({
             url: '/api/add-food-entry/',
             method: 'POST',
@@ -236,11 +333,11 @@ $(document).ready(function() {
             data: JSON.stringify(data),
             headers: {'X-CSRFToken': getCookie('csrftoken')},
             success: function() {
-                alert('Food entry saved!');
+                showToast('Food entry saved!', 'success');
                 $('#addDataModal').modal('hide');
-                location.reload();
+                setTimeout(function() { location.reload(); }, 1000);
             },
-            error: function(xhr) { alert('Error: ' + xhr.responseText); }
+            error: function(xhr) { showToast('Error: ' + xhr.responseText, 'error'); }
         });
     });
 
@@ -252,7 +349,7 @@ $(document).ready(function() {
             activity_id: $('#activity-motion-select').val(),
             duration_minutes: $('#activity-duration').val()
         };
-        if (!data.activity_id) { alert('Please select an activity.'); return; }
+        if (!data.activity_id) { showToast('Please select an activity.', 'error'); return; }
         $.ajax({
             url: '/api/add-activity-entry/',
             method: 'POST',
@@ -260,11 +357,11 @@ $(document).ready(function() {
             data: JSON.stringify(data),
             headers: {'X-CSRFToken': getCookie('csrftoken')},
             success: function() {
-                alert('Activity entry saved!');
+                showToast('Activity entry saved!', 'success');
                 $('#addDataModal').modal('hide');
-                location.reload();
+                setTimeout(function() { location.reload(); }, 1000);
             },
-            error: function(xhr) { alert('Error: ' + xhr.responseText); }
+            error: function(xhr) { showToast('Error: ' + xhr.responseText, 'error'); }
         });
     });
 

@@ -14,6 +14,8 @@ api_urlpatterns = [
     path('daily-log/<int:user_id>/', views.user_all_logs, name='user_all_logs'),
     path('add-food-entry/', views.add_food_entry, name='add_food_entry'),
     path('add-activity-entry/', views.add_activity_entry, name='add_activity_entry'),
+    path('delete-food-entry/<int:entry_id>/', views.delete_food_entry, name='delete_food_entry'),
+    path('delete-activity-entry/<int:entry_id>/', views.delete_activity_entry, name='delete_activity_entry'),
     path('food-groups/', views.food_groups, name='food_groups'),
     path('activity-names/', views.activity_names, name='activity_names'),
 ]
