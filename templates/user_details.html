@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.name }} - {{ selected_date }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="title-row">
+        <h1 class="title">{{ user.name }}</h1>
+        <div class="title-row-right">
+            <a href="{% url 'user_data' user.id %}" class="btn-secondary">Back to All Data</a>
+            <button class="btn-primary" data-toggle="modal" data-target="#addDataModal">Add Data</button>
+        </div>
+    </div>
+
+    <div class="view-calorie-data">
+        <div class="view-calorie-data-date-input">
+            <div class="date-input">
+                <form method="GET" action="{% url 'user_details' user.id %}">
+                    <input type="date" name="date" value="{{ selected_date }}"
+                           max="{{ today }}" min="{{ min_date }}"
+                           onchange="this.form.submit()">
+                </form>
+            </div>
+            <div class="show-selected-date">
+                Date: {{ selected_date }}
+            </div>
+        </div>
+
+        <div class="view-calorie-data-chart">
+            <!-- Food Data -->
+            <div class="food-data white-card">
+                <h2>Food Data</h2>
+                <div class="food-data-table">
+                    <table class="dcf-table dcf-table-responsive dcf-table-bordered dcf-table-striped dcf-w-100%">
+                        <thead>
+                            <tr>
+                                <th>Food Name</th>
+                                <th>Meal Type</th>
+                                <th>Food Group</th>
+                                <th>Servings</th>
+                                <th>Calories In</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in food_entries %}
+                            <tr>
+                                <th scope="row">{{ entry.food.name }}</th>
+                                <td data-label="Meal Type">{{ entry.get_meal_type_display }}</td>
+                                <td data-label="Food Group">{{ entry.food.food_group }}</td>
+                                <td data-label="Servings">{{ entry.servings }}</td>
+                                <td data-label="Calories In">{{ entry.calories_consumed }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" style="text-align:center;">No food entries for this date.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                        {% if food_entries %}
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" style="text-align:right;">Total Calories In:</th>
+                                <th>{{ total_in }}</th>
+                            </tr>
+                        </tfoot>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <!-- Activity Data -->
+            <div class="activity-data white-card">
+                <h2>Activity Data</h2>
+                <div class="activity-data-table">
+                    <table class="dcf-table dcf-table-responsive dcf-table-bordered dcf-table-striped dcf-w-100%">
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Description</th>
+                                <th>MET Value</th>
+                                <th>Duration</th>
+                                <th>Calories Out</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in activity_entries %}
+                            <tr>
+                                <th scope="row">{{ entry.activity.activity_name }}</th>
+                                <td data-label="Description">{{ entry.activity.specific_motion }}</td>
+                                <td data-label="MET Value">{{ entry.activity.met_value }}</td>
+                                <td data-label="Duration">{{ entry.duration_minutes }} min.</td>
+                                <td data-label="Calories Out">{{ entry.calories_burned }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" style="text-align:center;">No activity entries for this date.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                        {% if activity_entries %}
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" style="text-align:right;">Total Calories Out:</th>
+                                <th>{{ total_out }}</th>
+                            </tr>
+                        </tfoot>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <!-- Net Calorie Summary -->
+            <div class="net-calorie-data white-card">
+                <h2>Net Calorie</h2>
+                <div class="net-calorie-table">
+                    <div class="net-calorie-row">
+                        <strong>BMR: </strong>
+                        <span>-{{ bmr }}</span>
+                    </div>
+                    <div class="net-calorie-row">
+                        <strong>Food: </strong>
+                        <span>+{{ total_in }}</span>
+                    </div>
+                    <div class="net-calorie-row">
+                        <strong>Activity: </strong>
+                        <span>-{{ total_out }}</span>
+                    </div>
+                    <div class="net-calorie-row net-calorie-totl">
+                        <strong>Net Calorie:</strong>
+                        <span>{{ net }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Data Modal -->
+<div class="modal fade" id="addDataModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content add-data-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Data for {{ user.name }}</h5>
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="food-tab" data-toggle="tab" href="#food" role="tab">Add Food</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="activity-tab" data-toggle="tab" href="#activity" role="tab">Add Activity</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modal-user-id" value="{{ user.id }}">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="food" role="tabpanel">
+                        <div class="input-field">
+                            <label>Select Date</label>
+                            <input type="date" id="food-date" max="{{ today }}" min="{{ min_date }}" value="{{ selected_date }}">
+                        </div>
+                        <div class="input-field">
+                            <label>Food Group</label>
+                            <select id="food-group-select" class="selectbox">
+                                <option value="">-- Select Group --</option>
+                                {% for group in food_groups %}
+                                <option value="{{ group }}">{{ group }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Food Name</label>
+                            <select id="food-select" class="selectbox">
+                                <option value="">-- Select food group first --</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Meal Type</label>
+                            <select id="food-meal-type" class="selectbox">
+                                <option value="breakfast">Breakfast</option>
+                                <option value="lunch">Lunch</option>
+                                <option value="dinner">Dinner</option>
+                                <option value="snack">Snack</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Servings</label>
+                            <input type="number" id="food-servings" step="0.5" min="0.5" value="1">
+                        </div>
+                        <div class="input-field">
+                            <label>Calories: <strong id="food-calories-display">0</strong></label>
+                        </div>
+                        <div class="input-field input-field-btn btn-set--center">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="save-food-btn">Save</button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="activity" role="tabpanel">
+                        <div class="input-field">
+                            <label>Select Date</label>
+                            <input type="date" id="activity-date" max="{{ today }}" min="{{ min_date }}" value="{{ selected_date }}">
+                        </div>
+                        <div class="input-field">
+                            <label>Activity Name</label>
+                            <select id="activity-name-select" class="selectbox">
+                                <option value="">-- Select Activity --</option>
+                                {% for name in activity_names %}
+                                <option value="{{ name }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Specific Motion</label>
+                            <select id="activity-motion-select" class="selectbox">
+                                <option value="">-- Select activity first --</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>MET Value: <strong id="met-value-display">0</strong></label>
+                        </div>
+                        <div class="input-field">
+                            <label>Duration (minutes)</label>
+                            <input type="number" id="activity-duration" min="1" value="30">
+                        </div>
+                        <div class="input-field input-field-btn btn-set--center">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="save-activity-btn">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#food-group-select').on('change', function() {
+        var group = $(this).val();
+        if (!group) return;
+        $.get('/api/foods/?food_group=' + encodeURIComponent(group), function(data) {
+            var select = $('#food-select');
+            select.empty().append('<option value="">-- Select Food --</option>');
+            data.forEach(function(food) {
+                select.append('<option value="' + food.id + '" data-calories="' + food.calories + '">' +
+                    food.name + ' (' + food.calories + ' cal)</option>');
+            });
+        });
+    });
+
+    function updateFoodCalories() {
+        var cal = $('#food-select option:selected').data('calories') || 0;
+        var servings = parseFloat($('#food-servings').val()) || 1;
+        $('#food-calories-display').text((cal * servings).toFixed(1));
+    }
+    $('#food-select').on('change', updateFoodCalories);
+    $('#food-servings').on('input', updateFoodCalories);
+
+    $('#activity-name-select').on('change', function() {
+        var name = $(this).val();
+        if (!name) return;
+        $.get('/api/activities/?search=' + encodeURIComponent(name), function(data) {
+            var select = $('#activity-motion-select');
+            select.empty().append('<option value="">-- Select Motion --</option>');
+            data.forEach(function(act) {
+                if (act.activity_name === name) {
+                    select.append('<option value="' + act.id + '" data-met="' + act.met_value + '">' +
+                        act.specific_motion + ' (MET: ' + act.met_value + ')</option>');
+                }
+            });
+        });
+    });
+
+    $('#activity-motion-select').on('change', function() {
+        var met = $(this).find(':selected').data('met') || 0;
+        $('#met-value-display').text(met);
+    });
+
+    function getCookie(name) {
+        var value = '; ' + document.cookie;
+        var parts = value.split('; ' + name + '=');
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    $('#save-food-btn').on('click', function() {
+        var data = {
+            user_id: $('#modal-user-id').val(),
+            date: $('#food-date').val(),
+            food_id: $('#food-select').val(),
+            servings: $('#food-servings').val(),
+            meal_type: $('#food-meal-type').val()
+        };
+        if (!data.food_id) { alert('Please select a food item.'); return; }
+        $.ajax({
+            url: '/api/add-food-entry/',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            success: function() { alert('Food entry saved!'); location.reload(); },
+            error: function(xhr) { alert('Error: ' + xhr.responseText); }
+        });
+    });
+
+    $('#save-activity-btn').on('click', function() {
+        var data = {
+            user_id: $('#modal-user-id').val(),
+            date: $('#activity-date').val(),
+            activity_id: $('#activity-motion-select').val(),
+            duration_minutes: $('#activity-duration').val()
+        };
+        if (!data.activity_id) { alert('Please select an activity.'); return; }
+        $.ajax({
+            url: '/api/add-activity-entry/',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            success: function() { alert('Activity entry saved!'); location.reload(); },
+            error: function(xhr) { alert('Error: ' + xhr.responseText); }
+        });
+    });
+});
+</script>
+{% endblock %}
