@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{{ user.name }} - {{ selected_date }}{% endblock %}
 
 {% block content %}
@@ -138,251 +139,19 @@
     </div>
 </div>
 
-<!-- Add Data Modal -->
-<div class="modal fade" id="addDataModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content add-data-modal">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Data for {{ user.name }}</h5>
-                <ul class="nav nav-tabs" id="myTab" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="food-tab" data-toggle="tab" href="#food" role="tab">Add Food</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="activity-tab" data-toggle="tab" href="#activity" role="tab">Add Activity</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="modal-user-id" value="{{ user.id }}">
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="food" role="tabpanel">
-                        <div class="input-field">
-                            <label>Select Date</label>
-                            <input type="date" id="food-date" max="{{ today }}" min="{{ min_date }}" value="{{ selected_date }}">
-                        </div>
-                        <div class="input-field">
-                            <label>Search Food</label>
-                            <div class="search-wrapper">
-                                <input type="text" id="food-search" placeholder="Type to search (e.g. chicken, apple)..." autocomplete="off">
-                                <div class="search-results" id="food-search-results"></div>
-                            </div>
-                        </div>
-                        <div class="input-field">
-                            <label>Or Browse by Food Group</label>
-                            <select id="food-group-select" class="selectbox">
-                                <option value="">-- Select Group --</option>
-                                {% for group in food_groups %}
-                                <option value="{{ group }}">{{ group }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="input-field">
-                            <label>Food Name</label>
-                            <select id="food-select" class="selectbox">
-                                <option value="">-- Select food group first --</option>
-                            </select>
-                        </div>
-                        <div class="input-field">
-                            <label>Meal Type</label>
-                            <select id="food-meal-type" class="selectbox">
-                                <option value="breakfast">Breakfast</option>
-                                <option value="lunch">Lunch</option>
-                                <option value="dinner">Dinner</option>
-                                <option value="snack">Snack</option>
-                            </select>
-                        </div>
-                        <div class="input-field">
-                            <label>Servings</label>
-                            <input type="number" id="food-servings" step="0.5" min="0.5" value="1">
-                        </div>
-                        <div class="input-field">
-                            <label>Calories: <strong id="food-calories-display">0</strong></label>
-                        </div>
-                        <div class="input-field input-field-btn btn-set--center">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="save-food-btn">Save</button>
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="activity" role="tabpanel">
-                        <div class="input-field">
-                            <label>Select Date</label>
-                            <input type="date" id="activity-date" max="{{ today }}" min="{{ min_date }}" value="{{ selected_date }}">
-                        </div>
-                        <div class="input-field">
-                            <label>Search Activity</label>
-                            <div class="search-wrapper">
-                                <input type="text" id="activity-search" placeholder="Type to search (e.g. running, yoga)..." autocomplete="off">
-                                <div class="search-results" id="activity-search-results"></div>
-                            </div>
-                        </div>
-                        <div class="input-field">
-                            <label>Or Browse by Activity Name</label>
-                            <select id="activity-name-select" class="selectbox">
-                                <option value="">-- Select Activity --</option>
-                                {% for name in activity_names %}
-                                <option value="{{ name }}">{{ name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="input-field">
-                            <label>Specific Motion</label>
-                            <select id="activity-motion-select" class="selectbox">
-                                <option value="">-- Select activity first --</option>
-                            </select>
-                        </div>
-                        <div class="input-field">
-                            <label>MET Value: <strong id="met-value-display">0</strong></label>
-                        </div>
-                        <div class="input-field">
-                            <label>Duration (minutes)</label>
-                            <input type="number" id="activity-duration" min="1" value="30">
-                        </div>
-                        <div class="input-field input-field-btn btn-set--center">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="save-activity-btn">Save</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{% include 'partials/add_data_modal.html' with modal_user_name=user.name modal_user_id=user.id default_date=selected_date %}
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/modal.js' %}"></script>
 <script>
 $(document).ready(function() {
-    // Search food by typing
-    var foodSearchTimer;
-    $('#food-search').on('input', function() {
-        var query = $(this).val();
-        clearTimeout(foodSearchTimer);
-        if (query.length < 2) { $('#food-search-results').hide(); return; }
-        $('#food-search-results').empty().append('<div class="searching">Searching...</div>').show();
-        foodSearchTimer = setTimeout(function() {
-            $.get('/api/foods/?search=' + encodeURIComponent(query), function(data) {
-                var results = $('#food-search-results').empty();
-                if (data.length === 0) {
-                    results.append('<div class="no-results">No foods found</div>');
-                } else {
-                    data.forEach(function(food) {
-                        results.append(
-                            '<div class="search-item" data-id="' + food.id + '" data-calories="' + food.calories + '">' +
-                                '<div class="item-name">' + food.name + '</div>' +
-                                '<div class="item-detail">' + food.food_group + ' &middot; ' + food.calories + ' cal</div>' +
-                            '</div>'
-                        );
-                    });
-                }
-                results.show();
-            });
-        }, 300);
-    });
-
-    $(document).on('click', '#food-search-results .search-item', function() {
-        var id = $(this).data('id');
-        var cal = $(this).data('calories');
-        var name = $(this).find('.item-name').text();
-        var select = $('#food-select');
-        select.empty().append('<option value="' + id + '" data-calories="' + cal + '" selected>' + name + ' (' + cal + ' cal)</option>');
-        $('#food-search').val('');
-        $('#food-search-results').hide();
-        updateFoodCalories();
-    });
-
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('.search-wrapper').length) {
-            $('.search-results').hide();
-        }
-    });
-
-    $('#food-group-select').on('change', function() {
-        var group = $(this).val();
-        if (!group) return;
-        $.get('/api/foods/?food_group=' + encodeURIComponent(group), function(data) {
-            var select = $('#food-select');
-            select.empty().append('<option value="">-- Select Food --</option>');
-            data.forEach(function(food) {
-                select.append('<option value="' + food.id + '" data-calories="' + food.calories + '">' +
-                    food.name + ' (' + food.calories + ' cal)</option>');
-            });
-        });
-    });
-
-    function updateFoodCalories() {
-        var cal = $('#food-select option:selected').data('calories') || 0;
-        var servings = parseFloat($('#food-servings').val()) || 1;
-        $('#food-calories-display').text((cal * servings).toFixed(1));
-    }
-    $('#food-select').on('change', updateFoodCalories);
-    $('#food-servings').on('input', updateFoodCalories);
-
-    // Search activity by typing
-    var activitySearchTimer;
-    $('#activity-search').on('input', function() {
-        var query = $(this).val();
-        clearTimeout(activitySearchTimer);
-        if (query.length < 2) { $('#activity-search-results').hide(); return; }
-        $('#activity-search-results').empty().append('<div class="searching">Searching...</div>').show();
-        activitySearchTimer = setTimeout(function() {
-            $.get('/api/activities/?search=' + encodeURIComponent(query), function(data) {
-                var results = $('#activity-search-results').empty();
-                if (data.length === 0) {
-                    results.append('<div class="no-results">No activities found</div>');
-                } else {
-                    data.forEach(function(act) {
-                        results.append(
-                            '<div class="search-item" data-id="' + act.id + '" data-met="' + act.met_value + '">' +
-                                '<div class="item-name">' + act.specific_motion + '</div>' +
-                                '<div class="item-detail">' + act.activity_name + ' &middot; MET: ' + act.met_value + '</div>' +
-                            '</div>'
-                        );
-                    });
-                }
-                results.show();
-            });
-        }, 300);
-    });
-
-    $(document).on('click', '#activity-search-results .search-item', function() {
-        var id = $(this).data('id');
-        var met = $(this).data('met');
-        var name = $(this).find('.item-name').text();
-        var select = $('#activity-motion-select');
-        select.empty().append('<option value="' + id + '" data-met="' + met + '" selected>' + name + ' (MET: ' + met + ')</option>');
-        $('#activity-search').val('');
-        $('#activity-search-results').hide();
-        $('#met-value-display').text(met);
-    });
-
-    $('#activity-name-select').on('change', function() {
-        var name = $(this).val();
-        if (!name) return;
-        $.get('/api/activities/?search=' + encodeURIComponent(name), function(data) {
-            var select = $('#activity-motion-select');
-            select.empty().append('<option value="">-- Select Motion --</option>');
-            data.forEach(function(act) {
-                if (act.activity_name === name) {
-                    select.append('<option value="' + act.id + '" data-met="' + act.met_value + '">' +
-                        act.specific_motion + ' (MET: ' + act.met_value + ')</option>');
-                }
-            });
-        });
-    });
-
-    $('#activity-motion-select').on('change', function() {
-        var met = $(this).find(':selected').data('met') || 0;
-        $('#met-value-display').text(met);
-    });
-
     function getCookie(name) {
         var value = '; ' + document.cookie;
         var parts = value.split('; ' + name + '=');
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
-    // Delete food entry
     $('.delete-food-entry').on('click', function() {
         if (!confirm('Delete this food entry?')) return;
         var entryId = $(this).data('id');
@@ -395,7 +164,6 @@ $(document).ready(function() {
         });
     });
 
-    // Delete activity entry
     $('.delete-activity-entry').on('click', function() {
         if (!confirm('Delete this activity entry?')) return;
         var entryId = $(this).data('id');
@@ -404,45 +172,6 @@ $(document).ready(function() {
             method: 'DELETE',
             headers: {'X-CSRFToken': getCookie('csrftoken')},
             success: function() { location.reload(); },
-            error: function(xhr) { showToast('Error: ' + xhr.responseText, 'error'); }
-        });
-    });
-
-    $('#save-food-btn').on('click', function() {
-        var data = {
-            user_id: $('#modal-user-id').val(),
-            date: $('#food-date').val(),
-            food_id: $('#food-select').val(),
-            servings: $('#food-servings').val(),
-            meal_type: $('#food-meal-type').val()
-        };
-        if (!data.food_id) { showToast('Please select a food item.', 'error'); return; }
-        $.ajax({
-            url: '/api/add-food-entry/',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            headers: {'X-CSRFToken': getCookie('csrftoken')},
-            success: function() { showToast('Food entry saved!', 'success'); setTimeout(function() { location.reload(); }, 1000); },
-            error: function(xhr) { showToast('Error: ' + xhr.responseText, 'error'); }
-        });
-    });
-
-    $('#save-activity-btn').on('click', function() {
-        var data = {
-            user_id: $('#modal-user-id').val(),
-            date: $('#activity-date').val(),
-            activity_id: $('#activity-motion-select').val(),
-            duration_minutes: $('#activity-duration').val()
-        };
-        if (!data.activity_id) { showToast('Please select an activity.', 'error'); return; }
-        $.ajax({
-            url: '/api/add-activity-entry/',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            headers: {'X-CSRFToken': getCookie('csrftoken')},
-            success: function() { showToast('Activity entry saved!', 'success'); setTimeout(function() { location.reload(); }, 1000); },
             error: function(xhr) { showToast('Error: ' + xhr.responseText, 'error'); }
         });
     });

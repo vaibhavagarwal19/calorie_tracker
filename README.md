@@ -39,17 +39,20 @@ calorie_tracker/
 │   ├── views.py              # DRF ViewSets + Django template views
 │   ├── serializers.py        # DRF serializers with computed fields
 │   ├── urls.py               # API and template URL routing
-│   ├── utils.py              # BMR and calorie calculation helpers
 │   ├── admin.py              # Django admin registration
 │   └── management/commands/
 │       └── load_data.py      # Custom command to import Excel data
 ├── templates/                # HTML templates
-│   ├── base.html             # Base layout (header, footer, CDN imports)
+│   ├── base.html             # Base layout (header, footer, toast, keyboard nav)
 │   ├── signup.html           # User registration form
-│   ├── user_list.html        # Dashboard with user table + add data modal
+│   ├── user_list.html        # Dashboard with user table
 │   ├── user_data.html        # User's all daily logs with calorie stats
-│   └── user_details.html     # Single day breakdown (food, activity, net calories)
-├── static/css/               # Custom CSS
+│   ├── user_details.html     # Single day breakdown (food, activity, net calories)
+│   └── partials/
+│       └── add_data_modal.html  # Reusable add data modal (shared across pages)
+├── static/
+│   ├── css/global.css        # Custom CSS
+│   └── js/modal.js           # Shared modal JS (search, save, dropdowns)
 ├── data-excels-for-db/       # Source Excel files
 │   ├── food-calories.xlsx    # 14,000+ food items
 │   └── MET-values.xlsx       # 800+ activities with MET values
