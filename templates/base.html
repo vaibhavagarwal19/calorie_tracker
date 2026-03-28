@@ -62,6 +62,58 @@
         $('#toast-body').text(message);
         toast.toast('show');
     }
+
+    // Keyboard navigation for search dropdowns
+    $(document).on('keydown', '.search-wrapper input', function(e) {
+        var results = $(this).siblings('.search-results');
+        var items = results.find('.search-item');
+        var active = results.find('.search-item.active');
+        if (!results.is(':visible') || items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (active.length === 0) {
+                items.first().addClass('active');
+            } else {
+                active.removeClass('active');
+                var next = active.next('.search-item');
+                if (next.length) {
+                    next.addClass('active');
+                } else {
+                    items.first().addClass('active');
+                }
+            }
+            // Scroll active item into view
+            var activeItem = results.find('.search-item.active');
+            if (activeItem.length) {
+                activeItem[0].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (active.length === 0) {
+                items.last().addClass('active');
+            } else {
+                active.removeClass('active');
+                var prev = active.prev('.search-item');
+                if (prev.length) {
+                    prev.addClass('active');
+                } else {
+                    items.last().addClass('active');
+                }
+            }
+            var activeItem = results.find('.search-item.active');
+            if (activeItem.length) {
+                activeItem[0].scrollIntoView({ block: 'nearest' });
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (active.length) {
+                active.click();
+            }
+        } else if (e.key === 'Escape') {
+            results.hide();
+        }
+    });
     </script>
     {% block extra_js %}{% endblock %}
 </body>

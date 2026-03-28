@@ -7,8 +7,12 @@ A full-stack web application built with Django and Django REST Framework that he
 - **User Profiles** — Create profiles with biometric data (weight, height, age, sex) to calculate personalized BMR
 - **Food Logging** — Search from 14,000+ food items across multiple food groups, log meals with servings
 - **Activity Logging** — Choose from 800+ activities with MET values, log duration
+- **Search with Autocomplete** — Type-ahead search for foods and activities with keyboard navigation (Arrow keys + Enter)
+- **Delete Entries** — Remove incorrect food or activity entries from daily logs
 - **Daily Summary** — View net calories = Food Intake - BMR - Calories Burned
+- **Net Calorie Color Coding** — Green for deficit (weight loss), red for surplus (weight gain)
 - **Trends View** — See all daily logs for a user with calorie breakdown
+- **Toast Notifications** — Non-blocking success/error notifications instead of browser alerts
 - **REST API** — Full API endpoints for programmatic access
 
 ## Tech Stack
@@ -134,5 +138,7 @@ UserProfile ──┐
 | GET | `/api/daily-log/<user_id>/<date>/` | Get specific day's log |
 | POST | `/api/add-food-entry/` | Add a food entry |
 | POST | `/api/add-activity-entry/` | Add an activity entry |
+| DELETE | `/api/delete-food-entry/<id>/` | Delete a food entry |
+| DELETE | `/api/delete-activity-entry/<id>/` | Delete an activity entry |
 | GET | `/api/food-groups/` | List all distinct food groups |
 | GET | `/api/activity-names/` | List all distinct activity names |

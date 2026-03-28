@@ -259,6 +259,7 @@ $(document).ready(function() {
         var query = $(this).val();
         clearTimeout(foodSearchTimer);
         if (query.length < 2) { $('#food-search-results').hide(); return; }
+        $('#food-search-results').empty().append('<div class="searching">Searching...</div>').show();
         foodSearchTimer = setTimeout(function() {
             $.get('/api/foods/?search=' + encodeURIComponent(query), function(data) {
                 var results = $('#food-search-results').empty();
@@ -323,6 +324,7 @@ $(document).ready(function() {
         var query = $(this).val();
         clearTimeout(activitySearchTimer);
         if (query.length < 2) { $('#activity-search-results').hide(); return; }
+        $('#activity-search-results').empty().append('<div class="searching">Searching...</div>').show();
         activitySearchTimer = setTimeout(function() {
             $.get('/api/activities/?search=' + encodeURIComponent(query), function(data) {
                 var results = $('#activity-search-results').empty();

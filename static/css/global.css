@@ -345,6 +345,18 @@ a {
     text-align: center;
 }
 
+.search-results .searching {
+    padding: 10px 12px;
+    color: #888;
+    font-size: 14px;
+    text-align: center;
+}
+
+.search-results .search-item.active {
+    background: #f8f9fa;
+    border-left: 3px solid #3498db;
+}
+
 /* Modal */
 .add-data-modal .modal-header {
     flex-direction: column;
