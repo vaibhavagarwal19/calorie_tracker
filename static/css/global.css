@@ -357,6 +357,33 @@ a {
     border-left: 3px solid #3498db;
 }
 
+.selected-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #eaf4fb;
+    border: 1px solid #b8d9f0;
+    border-radius: 5px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.selected-tag-clear {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.selected-tag-clear:hover {
+    color: #c0392b;
+}
+
 /* Modal */
 .add-data-modal .modal-header {
     flex-direction: column;

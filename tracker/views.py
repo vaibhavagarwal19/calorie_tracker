@@ -223,7 +223,8 @@ def user_details_view(request, user_id):
     return render(request, 'user_details.html', context)
 
 
+@api_view(['DELETE'])
 def delete_user_view(request, user_id):
     user = get_object_or_404(UserProfile, pk=user_id)
     user.delete()
-    return redirect('user_list')
+    return Response(status=204)

@@ -24,7 +24,7 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.name
-    
+
 
 class Food(models.Model):
     food_id = models.IntegerField(unique=True)
@@ -37,8 +37,9 @@ class Food(models.Model):
     serving_description = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.name    
-    
+        return self.name
+
+
 class Activity(models.Model):
     activity_name = models.CharField(max_length=200)
     specific_motion = models.CharField(max_length=300)
@@ -72,7 +73,7 @@ class DailyLog(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.date}"
-    
+
 
 class FoodEntry(models.Model):
     MEAL_CHOICES = [
@@ -91,7 +92,7 @@ class FoodEntry(models.Model):
         return round(self.food.calories * self.servings, 2)
 
     def __str__(self):
-        return f"{self.food.name} x{self.servings} ({self.meal_type})"  
+        return f"{self.food.name} x{self.servings} ({self.meal_type})"
 
 
 class ActivityEntry(models.Model):
@@ -104,4 +105,4 @@ class ActivityEntry(models.Model):
         return round(self.activity.met_value * weight * (self.duration_minutes / 60), 2)
 
     def __str__(self):
-        return f"{self.activity.specific_motion} - {self.duration_minutes} min"  
+        return f"{self.activity.specific_motion} - {self.duration_minutes} min"

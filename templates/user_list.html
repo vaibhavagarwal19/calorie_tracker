@@ -39,11 +39,13 @@
                                     data-toggle="modal"
                                     data-target="#addDataModal"
                                     data-user-id="{{ user.id }}"
-                                    data-user-name="{{ user.name }}">
+                                    data-user-name="{{ user.name }}"
+                                    data-user-weight="{{ user.weight }}">
                                 Add Data
                             </button>
-                            <a class="btn-danger" href="{% url 'delete_user' user.id %}"
-                               onclick="return confirm('Delete {{ user.name }}?')">Delete</a>
+                            <button class="btn-danger delete-user-btn"
+                                    data-user-id="{{ user.id }}"
+                                    data-user-name="{{ user.name }}">Delete</button>
                         </div>
                     </td>
                 </tr>
@@ -57,7 +59,7 @@
     </div>
 </div>
 
-{% include 'partials/add_data_modal.html' with modal_user_name='' modal_user_id='' default_date=today %}
+{% include 'partials/add_data_modal.html' with modal_user_name='' modal_user_id='' modal_user_weight='' default_date=today %}
 {% endblock %}
 
 {% block extra_js %}
@@ -67,6 +69,24 @@ $(document).ready(function() {
     $('.add-data-btn').on('click', function() {
         $('#modal-user-id').val($(this).data('user-id'));
         $('#modal-user-name').text($(this).data('user-name'));
+        $('#modal-user-weight').val($(this).data('user-weight'));
+    });
+
+    $('.delete-user-btn').on('click', function() {
+        var userId = $(this).data('user-id');
+        var userName = $(this).data('user-name');
+        showConfirm('Are you sure you want to delete "' + userName + '"? All their data will be permanently removed.', function() {
+            $.ajax({
+                url: '/users/' + userId + '/delete/',
+                method: 'DELETE',
+                headers: {'X-CSRFToken': getCookie('csrftoken')},
+                success: function() {
+                    showToast('User "' + userName + '" deleted!', 'success');
+                    setTimeout(function() { location.reload(); }, 1000);
+                },
+                error: function(xhr) { showToast('Error deleting user.', 'error'); }
+            });
+        });
     });
 });
 </script>

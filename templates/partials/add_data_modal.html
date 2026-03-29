@@ -14,6 +14,7 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="modal-user-id" value="{{ modal_user_id }}">
+                <input type="hidden" id="modal-user-weight" value="{{ modal_user_weight }}">
                 <div class="tab-content">
                     <!-- Food Tab -->
                     <div class="tab-pane fade show active" id="food" role="tabpanel">
@@ -28,6 +29,10 @@
                                     <input type="text" id="food-search" placeholder="Type to search (e.g. chicken, apple)..." autocomplete="off">
                                     <div class="search-results" id="food-search-results"></div>
                                 </div>
+                                <div class="selected-tag" id="food-selected-tag" style="display:none;">
+                                    <span id="food-selected-name"></span>
+                                    <button type="button" class="selected-tag-clear" id="clear-food">&times;</button>
+                                </div>
                             </div>
                             <div class="input-field">
                                 <label>Or Browse by Food Group</label>
@@ -38,7 +43,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="input-field">
+                            <div class="input-field" id="food-select-wrapper">
                                 <label>Food Name</label>
                                 <select id="food-select" class="selectbox">
                                     <option value="">-- Select food group first --</option>
@@ -79,6 +84,10 @@
                                     <input type="text" id="activity-search" placeholder="Type to search (e.g. running, yoga)..." autocomplete="off">
                                     <div class="search-results" id="activity-search-results"></div>
                                 </div>
+                                <div class="selected-tag" id="activity-selected-tag" style="display:none;">
+                                    <span id="activity-selected-name"></span>
+                                    <button type="button" class="selected-tag-clear" id="clear-activity">&times;</button>
+                                </div>
                             </div>
                             <div class="input-field">
                                 <label>Or Browse by Activity Name</label>
@@ -89,7 +98,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="input-field">
+                            <div class="input-field" id="activity-select-wrapper">
                                 <label>Specific Motion</label>
                                 <select id="activity-motion-select" class="selectbox">
                                     <option value="">-- Select activity first --</option>
