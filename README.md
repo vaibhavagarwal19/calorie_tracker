@@ -8,11 +8,14 @@ A full-stack web application built with Django and Django REST Framework that he
 - **Food Logging** — Search from 14,000+ food items across multiple food groups, log meals with servings
 - **Activity Logging** — Choose from 800+ activities with MET values, log duration
 - **Search with Autocomplete** — Type-ahead search for foods and activities with keyboard navigation (Arrow keys + Enter)
-- **Delete Entries** — Remove incorrect food or activity entries from daily logs
+- **Delete Entries** — Remove incorrect food/activity entries or users with styled confirmation dialog
 - **Daily Summary** — View net calories = Food Intake - BMR - Calories Burned
 - **Net Calorie Color Coding** — Green for deficit (weight loss), red for surplus (weight gain)
 - **Trends View** — See all daily logs for a user with calorie breakdown
 - **Toast Notifications** — Non-blocking success/error notifications instead of browser alerts
+- **Confirm Dialogs** — Styled Bootstrap modal confirmation before all delete actions
+- **Live Calorie Calculation** — Calories update in real-time as you change food, servings, activity, or duration
+- **Keyboard Navigation** — Arrow keys + Enter to navigate and select search results
 - **REST API** — Full API endpoints for programmatic access
 
 ## Tech Stack
@@ -43,7 +46,7 @@ calorie_tracker/
 │   └── management/commands/
 │       └── load_data.py      # Custom command to import Excel data
 ├── templates/                # HTML templates
-│   ├── base.html             # Base layout (header, footer, toast, keyboard nav)
+│   ├── base.html             # Base layout (header, footer, toast, confirm dialog, keyboard nav)
 │   ├── signup.html           # User registration form
 │   ├── user_list.html        # Dashboard with user table
 │   ├── user_data.html        # User's all daily logs with calorie stats
@@ -143,5 +146,6 @@ UserProfile ──┐
 | POST | `/api/add-activity-entry/` | Add an activity entry |
 | DELETE | `/api/delete-food-entry/<id>/` | Delete a food entry |
 | DELETE | `/api/delete-activity-entry/<id>/` | Delete an activity entry |
+| DELETE | `/users/<user_id>/delete/` | Delete a user and all their data |
 | GET | `/api/food-groups/` | List all distinct food groups |
 | GET | `/api/activity-names/` | List all distinct activity names |
