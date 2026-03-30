@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from django.shortcuts import render, get_object_or_404, redirect
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import UserProfile, Food, Activity, DailyLog, FoodEntry, ActivityEntry
@@ -66,8 +66,17 @@ def add_food_entry(request):
     user_id = request.data.get('user_id')
     log_date = request.data.get('date')
     food_id = request.data.get('food_id')
-    servings = float(request.data.get('servings', 1))
     meal_type = request.data.get('meal_type', 'lunch')
+
+    if not all([user_id, log_date, food_id]):
+        return Response({'error': 'user_id, date, and food_id are required.'}, status=400)
+
+    try:
+        servings = float(request.data.get('servings', 1))
+        if servings <= 0:
+            return Response({'error': 'Servings must be greater than 0.'}, status=400)
+    except (ValueError, TypeError):
+        return Response({'error': 'Invalid servings value.'}, status=400)
 
     user = get_object_or_404(UserProfile, pk=user_id)
     food = get_object_or_404(Food, pk=food_id)
@@ -84,7 +93,16 @@ def add_activity_entry(request):
     user_id = request.data.get('user_id')
     log_date = request.data.get('date')
     activity_id = request.data.get('activity_id')
-    duration_minutes = float(request.data.get('duration_minutes', 30))
+
+    if not all([user_id, log_date, activity_id]):
+        return Response({'error': 'user_id, date, and activity_id are required.'}, status=400)
+
+    try:
+        duration_minutes = float(request.data.get('duration_minutes', 30))
+        if duration_minutes <= 0:
+            return Response({'error': 'Duration must be greater than 0.'}, status=400)
+    except (ValueError, TypeError):
+        return Response({'error': 'Invalid duration value.'}, status=400)
 
     user = get_object_or_404(UserProfile, pk=user_id)
     activity = get_object_or_404(Activity, pk=activity_id)
@@ -124,6 +142,17 @@ def activity_names(request):
 
 # ==================== Template Views ====================
 
+def _get_modal_context():
+    """Common context data needed by the add data modal on every page."""
+    today = date.today()
+    return {
+        'food_groups': Food.objects.values_list('food_group', flat=True).distinct().order_by('food_group'),
+        'activity_names': Activity.objects.values_list('activity_name', flat=True).distinct().order_by('activity_name'),
+        'today': today.isoformat(),
+        'min_date': (today - timedelta(days=30)).isoformat(),
+    }
+
+
 def signup_view(request):
     if request.method == 'POST':
         UserProfile.objects.create(
@@ -138,57 +167,31 @@ def signup_view(request):
 
 
 def user_list_view(request):
-    users = UserProfile.objects.all()
-    food_groups_list = Food.objects.values_list('food_group', flat=True).distinct().order_by('food_group')
-    activity_names_list = Activity.objects.values_list('activity_name', flat=True).distinct().order_by('activity_name')
-    today = date.today()
-    min_date = today - timedelta(days=30)
-    context = {
-        'users': users,
-        'food_groups': food_groups_list,
-        'activity_names': activity_names_list,
-        'today': today.isoformat(),
-        'min_date': min_date.isoformat(),
-    }
+    context = {'users': UserProfile.objects.all()}
+    context.update(_get_modal_context())
     return render(request, 'user_list.html', context)
 
 
 def user_data_view(request, user_id):
     user = get_object_or_404(UserProfile, pk=user_id)
     logs = DailyLog.objects.filter(user=user).order_by('-date')
-    food_groups_list = Food.objects.values_list('food_group', flat=True).distinct().order_by('food_group')
-    activity_names_list = Activity.objects.values_list('activity_name', flat=True).distinct().order_by('activity_name')
-    today = date.today()
-    min_date = today - timedelta(days=30)
 
-    log_data = []
-    for log in logs:
-        log_data.append({
-            'date': log.date,
-            'bmr': log.bmr(),
-            'calories_in': log.total_calories_in(),
-            'calories_out': log.total_calories_out(),
-            'net_calories': log.net_calories(),
-        })
+    log_data = [{
+        'date': log.date,
+        'bmr': log.bmr(),
+        'calories_in': log.total_calories_in(),
+        'calories_out': log.total_calories_out(),
+        'net_calories': log.net_calories(),
+    } for log in logs]
 
-    context = {
-        'user': user,
-        'logs': log_data,
-        'food_groups': food_groups_list,
-        'activity_names': activity_names_list,
-        'today': today.isoformat(),
-        'min_date': min_date.isoformat(),
-    }
+    context = {'user': user, 'logs': log_data}
+    context.update(_get_modal_context())
     return render(request, 'user_data.html', context)
 
 
 def user_details_view(request, user_id):
     user = get_object_or_404(UserProfile, pk=user_id)
     selected_date = request.GET.get('date', date.today().isoformat())
-    food_groups_list = Food.objects.values_list('food_group', flat=True).distinct().order_by('food_group')
-    activity_names_list = Activity.objects.values_list('activity_name', flat=True).distinct().order_by('activity_name')
-    today = date.today()
-    min_date = today - timedelta(days=30)
 
     try:
         log = DailyLog.objects.get(user=user, date=selected_date)
@@ -215,11 +218,8 @@ def user_details_view(request, user_id):
         'total_out': total_out,
         'bmr': bmr,
         'net': round(net, 2),
-        'food_groups': food_groups_list,
-        'activity_names': activity_names_list,
-        'today': today.isoformat(),
-        'min_date': min_date.isoformat(),
     }
+    context.update(_get_modal_context())
     return render(request, 'user_details.html', context)
 
 
