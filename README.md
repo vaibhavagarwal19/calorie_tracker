@@ -42,6 +42,7 @@ calorie_tracker/
 │   ├── views.py              # DRF ViewSets + Django template views
 │   ├── serializers.py        # DRF serializers with computed fields
 │   ├── urls.py               # API and template URL routing
+│   ├── tests.py              # 25 unit tests (models, views, API)
 │   ├── admin.py              # Django admin registration
 │   └── management/commands/
 │       └── load_data.py      # Custom command to import Excel data
@@ -149,3 +150,14 @@ UserProfile ──┐
 | DELETE | `/users/<user_id>/delete/` | Delete a user and all their data |
 | GET | `/api/food-groups/` | List all distinct food groups |
 | GET | `/api/activity-names/` | List all distinct activity names |
+
+## Running Tests
+
+```bash
+python manage.py test tracker
+```
+
+25 tests covering:
+- **Model tests** — BMR calculation (male/female), calorie consumed, calories burned, net calories, unique_together constraint
+- **View tests** — All 4 pages return 200, signup creates user
+- **API tests** — Search, add entries, delete entries, input validation (missing fields, invalid values)

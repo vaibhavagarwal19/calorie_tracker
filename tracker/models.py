@@ -1,6 +1,6 @@
 from django.db import models
 
-# Create your models here.
+
 class UserProfile(models.Model):
     SEX_CHOICES = [
         ('male', 'Male'),
